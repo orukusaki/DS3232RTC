@@ -144,6 +144,7 @@ class DS3232RTC
         uint8_t readRTC(uint8_t addr);
         void setAlarm(ALARM_TYPES_t alarmType, uint8_t seconds, uint8_t minutes, uint8_t hours, uint8_t daydate);
         void setAlarm(ALARM_TYPES_t alarmType, uint8_t minutes, uint8_t hours, uint8_t daydate);
+        ALARM_TYPES_t readAlarm(byte alarmNumber, tmElements_t &tm);
         void alarmInterrupt(ALARM_NBR_t alarmNumber, bool alarmEnabled);
         bool alarm(ALARM_NBR_t alarmNumber);
         bool checkAlarm(ALARM_NBR_t alarmNumber);

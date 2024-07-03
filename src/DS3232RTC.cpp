@@ -154,6 +154,52 @@ void DS3232RTC::setAlarm(ALARM_TYPES_t alarmType, uint8_t seconds, uint8_t minut
     writeRTC(addr++, daydate);
 }
 
+DS3232RTC::ALARM_TYPES_t DS3232RTC::readAlarm(byte alarmNumber, tmElements_t &tm)
+{
+    uint8_t addr;
+    uint16_t alarmType;
+
+    if (alarmNumber == ALARM_1) {
+        addr = DS32_ALM1_SEC;
+        alarmType = 0x00;
+
+        byte secondDcb = readRTC(addr++);
+        if (secondDcb & _BV(DS32_A1M1)) alarmType &= 0x01;
+        secondDcb &= ~(_BV(DS32_A1M1));
+        tm.Second = bcd2dec(secondDcb);
+    }
+    else {
+        addr = DS32_ALM2_MIN;
+        alarmType = 0x80;
+        tm.Second = 0;
+    }
+
+    byte minuteDcb = readRTC(addr++);
+    if (minuteDcb & _BV(DS32_A1M2)) alarmType |= 0x02;
+    minuteDcb &= ~(_BV(DS32_A1M2));
+    tm.Minute = bcd2dec(minuteDcb);
+
+    byte hourDcb = readRTC(addr++);
+    if (hourDcb & _BV(DS32_A1M3)) alarmType |= 0x04;
+    hourDcb &= ~(_BV(DS32_A1M3));
+    tm.Hour = bcd2dec(hourDcb);
+
+    byte daydateBcd = readRTC(addr++);
+    if (daydateBcd & _BV(DS32_DYDT)) alarmType |= 0x10;
+    if (daydateBcd & _BV(DS32_A1M4)) alarmType |= 0x08;
+    daydateBcd &= ~(_BV(DS32_A1M4));
+    if (daydateBcd & _BV(DS32_DYDT)) {
+        daydateBcd &= ~(_BV(DS32_DYDT));
+        tm.Wday = bcd2dec(daydateBcd);
+        tm.Day = 0;
+    } else {
+        tm.Day = bcd2dec(daydateBcd);
+        tm.Wday = 0;
+    }
+
+    return ((ALARM_TYPES_t) alarmType);
+}
+
 // Set an alarm time. Sets the alarm registers only. To cause the
 // INT pin to be asserted on alarm match, use alarmInterrupt().
 // This method can set either Alarm 1 or Alarm 2, depending on the
